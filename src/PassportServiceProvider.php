@@ -22,6 +22,7 @@ use Laravel\Passport\Bridge\PersonalAccessGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
+use Defuse\Crypto\Key;
 
 class PassportServiceProvider extends ServiceProvider
 {
@@ -202,12 +203,13 @@ class PassportServiceProvider extends ServiceProvider
      */
     public function makeAuthorizationServer()
     {
+        $encryptionKey = env('AUTHORIZATION_SERVER_KEY') ? Key::loadFromAsciiSafeString(env('AUTHORIZATION_SERVER_KEY')) : app('encrypter')->getKey();
         return new AuthorizationServer(
             $this->app->make(Bridge\ClientRepository::class),
             $this->app->make(Bridge\AccessTokenRepository::class),
             $this->app->make(Bridge\ScopeRepository::class),
             $this->makeCryptKey('private'),
-            app('encrypter')->getKey()
+            $encryptionKey
         );
     }
 
